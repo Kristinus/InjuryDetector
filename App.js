@@ -7,9 +7,15 @@ import {
   Image,
   CameraRoll
 } from 'react-native';
+// import {
+//   Vision} from './node_modules/@google-cloud/vision';
 
 export default class App extends React.Component {
-  
+  state = {
+    image: null,
+    uploading: false,
+    desc: '',
+  };
   render() {
     return (
       <View style={styles.container}>
@@ -25,11 +31,11 @@ export default class App extends React.Component {
             onPress={this._onPick}>
             <Text>Get pic!!</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={this.getDetails}>
-            <Text>Get Details!!</Text>
-          </TouchableOpacity>
+        </View>
+        <View>
+          <Text>
+            {this.state.desc}
+            </Text>
         </View>
       </View>
     );
@@ -41,7 +47,10 @@ export default class App extends React.Component {
       uri,
     } = await Expo.ImagePicker.launchImageLibraryAsync();
     if (!cancelled) {
-      this.getJSON(uri);
+      uploadResponse = await uploadImageAsync(uri);
+      uploadResult = await uploadResponse.json();
+      this.setState({ image: uploadResult.location });
+      this.getJSON(this.state.image);
     }
   }
 
@@ -51,7 +60,10 @@ export default class App extends React.Component {
       uri,
     } = await Expo.ImagePicker.launchCameraAsync();
     if (!cancelled) {
-      this.getJSON(uri);
+      uploadResponse = await uploadImageAsync(uri);
+      uploadResult = await uploadResponse.json();
+      this.setState({ image: uploadResult.location });
+      this.getJSON(this.state.image);
     }
   }
 
@@ -67,8 +79,7 @@ export default class App extends React.Component {
           {
             image: {
               source: {
-                imageUri:
-                "http://www.skincareorg.com/wp-content/uploads/2017/02/How-to-Stop-a-Burn-from-Hurting.jpg"
+                imageUri: uri
               }
             },
             features: [
@@ -86,42 +97,37 @@ export default class App extends React.Component {
       .then(function (response) {
         return response.json()
       }).then(function (body) {
+        this.state.desc = JSON.stringify(body.responses[0].webDetection.webEntities);
         console.log(JSON.stringify(body.responses[0].webDetection.webEntities));
       }).catch(function (err) {
         console.log(err);
       });
   }
+}
 
-  getDetails(uri) {
-  //   // Imports the Google Cloud client library
-    // Vision = require('@google-cloud/vision');
+async function uploadImageAsync(uri) {
+  let apiUrl = 'https://file-upload-example-backend-dkhqoilqqn.now.sh/upload';
 
-  //   // Instantiates a client
-    // const vision = Vision();
-    // console.log("TET");
+  let uriParts = uri.split('.');
+  let fileType = uri[uri.length - 1];
 
-  //   // The name of the image file to annotate
-  //   const fileName = uri;
+  let formData = new FormData();
+  formData.append('photo', {
+    uri,
+    name: `photo.${fileType}`,
+    type: `image/${fileType}`,
+  });
 
-  //   // Prepare the request object
-  //   const request = {
-  //     source: {
-  //       filename: fileName
-  //     }
-  //   };
-
-  //   // Performs label detection on the image file
-  //   vision.labelDetection(request)
-  //     .then((results) => {
-  //       const labels = results[0].labelAnnotations;
-
-  //       console.log('Labels:');
-  //       labels.forEach((label) => console.log(label.description));
-  //     })
-  //     .catch((err) => {
-  //       console.error('ERROR:', err);
-  //     });
-  }
+  let options = {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+  console.log(uri);
+  return fetch(apiUrl, options);
 }
 
 const styles = StyleSheet.create({
