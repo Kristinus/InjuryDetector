@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 export default class App extends React.Component {
+  url = 'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc';
   render() {
     return (
       <View style={styles.container}>
@@ -16,6 +17,11 @@ export default class App extends React.Component {
           style={styles.button}
           onPress={this._onTake}>
           <Text>Take a pic!!</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={this.getJSON}>
+          <Text>Get JSON!!</Text>
         </TouchableOpacity>
       </View>
     );
@@ -27,7 +33,6 @@ export default class App extends React.Component {
       uri,
     } = await Expo.ImagePicker.launchCameraAsync();
     if (!cancelled) {
-      this.setState({ imageUri: uri });
       fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc	', {
         method: 'POST',
         headers: {
@@ -59,6 +64,43 @@ export default class App extends React.Component {
           console.log(body);
         });
     }
+  }
+
+  getJSON = async () => {
+    var object = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [
+          {
+            image: {
+              source: {
+                imageUri:
+                "http://www.skincareorg.com/wp-content/uploads/2017/02/How-to-Stop-a-Burn-from-Hurting.jpg"
+              }
+            },
+            features: [
+              {
+                type: "WEB_DETECTION",
+                maxResults: 5
+              }
+            ]
+          }
+        ]
+      })
+    };
+    console.log(object);
+    console.log("");
+    fetch(url, object)
+      .then(function (response) {
+        return response.json()
+      }).then(function (body) {
+        console.log(body);
+      }).catch(function (err) {
+        console.log(err);
+      });
   }
 }
 
