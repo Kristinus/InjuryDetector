@@ -12,6 +12,8 @@ export default class App extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+
+        <View style={{ flexDirection: 'row' }}>
         <TouchableOpacity
           style={styles.button}
           onPress={this._onTake}>
@@ -19,11 +21,22 @@ export default class App extends React.Component {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={this.getJSON}>
-          <Text>Get JSON!!</Text>
+          onPress={this._onPick}>
+          <Text>Get pic!!</Text>
         </TouchableOpacity>
+        </View>
       </View>
     );
+  }
+
+  _onPick = async () => {
+    const {
+      cancelled,
+      uri,
+    } = await Expo.ImagePicker.launchImageLibraryAsync();
+    if (!cancelled) {
+      this.getJSON(uri);
+    }
   }
 
   _onTake = async () => {
@@ -32,41 +45,12 @@ export default class App extends React.Component {
       uri,
     } = await Expo.ImagePicker.launchCameraAsync();
     if (!cancelled) {
-      fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc	', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requests: [
-            {
-              image: {
-                source: {
-                  imageUri:
-                  "http://www.skincareorg.com/wp-content/uploads/2017/02/How-to-Stop-a-Burn-from-Hurting.jpg"
-                }
-              },
-              features: [
-                {
-                  type: "WEB_DETECTION",
-                  maxResults: 5
-                }
-              ]
-            }
-          ]
-        })
-      })
-        .then(function (response) {
-          return response.json()
-        }).then(function (body) {
-          console.log(body);
-        }).catch(function (err) {
-          console.log(err);
-        });
+      this.getJSON(uri);
     }
   }
 
-  getJSON = async () => {
+  getJSON(uri) {
+    console.log(uri);
     var object = {
       method: 'POST',
       headers: {
@@ -96,7 +80,7 @@ export default class App extends React.Component {
       .then(function (response) {
         return response.json()
       }).then(function (body) {
-        console.log(body);
+        console.log(JSON.stringify(body.responses));
       }).catch(function (err) {
         console.log(err);
       });
