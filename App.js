@@ -20,8 +20,6 @@ import {
     CutScreen,
 } from './InfoScreen';
 
-console.log(typeof (CutScreen));
-
 class HomeScreen extends React.Component {
     state = {
         image: null,
@@ -44,7 +42,7 @@ class HomeScreen extends React.Component {
                     />
                 </View>
                 <View>
-                    {this.state.injury ? <Text>{this.state.injury}</Text> : null}
+                    {this.state.injury&&!this.state.isLoading ? <Text>{this.state.injury}</Text> : null}
                     {this.state.isLoading ? <Image source={require('./assets/icons/loading-circle.gif')}/> : null}
                 </View>
             </View>

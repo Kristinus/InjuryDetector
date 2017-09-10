@@ -18,12 +18,8 @@ export class InfoScreen extends React.Component {
         title: navigation.state.params.injury,
     });
     render() {
-        const { goBack } = this.props.navigation;
         return (
-            <Button
-                title="Go back"
-                onPress={() => goBack()}
-            />
+            <View></View>
         );
     }
 }
@@ -33,7 +29,6 @@ export class BurnScreen extends React.Component {
         title: navigation.state.params.injury,
     });
     render() {
-        const { goBack } = this.props.navigation;
         return (
             <View style={styles.container}>
                 <Text>
@@ -42,10 +37,6 @@ export class BurnScreen extends React.Component {
                     Electrical burns: Check breathing and heartbeat patterns. If there is irregular or a lack of breathing or heartbeats, call EMS.
                     Chemical burns: Determine which chemical caused the burn. Call your local Poison Control Centre.
                 </Text>
-                <Button
-                    title="Go back"
-                    onPress={() => goBack()}
-                />
             </View>
         );
     }
@@ -56,19 +47,14 @@ export class CutScreen extends React.Component {
         title: navigation.state.params.injury,
     });
     render() {
-        const { goBack } = this.props.navigation;
         return (
             <View style={styles.container}>
                 <Text>
-                    <b>If cut is severe, blood is spurting out, or bleeding is not stopped after 10 minutes, call EMS.</b>
+                    If cut is severe, blood is spurting out, or bleeding is not stopped after 10 minutes, call EMS.
                     First, stop bleeding by applying pressure to affected area. Ensure to use a clean item to stop the blood.
                     Once bleeding has stopped, clean the affected area with warm water and general soap. Apply an antibiotic ointment to reduce chance of infection.
                     Apply a bandage over the cut.
                 </Text>
-                <Button
-                    title="Go back"
-                    onPress={() => goBack()}
-                />
             </View>
         );
     }
@@ -79,7 +65,6 @@ export class BruiseScreen extends React.Component {
         title: navigation.state.params.injury,
     });
     render() {
-        const { goBack } = this.props.navigation;
         return (
             <View style={styles.container}>
                 <Text>
@@ -87,10 +72,6 @@ export class BruiseScreen extends React.Component {
                     Elevate affected area above heart to reduce swelling.
                     Gently massage affected area to increase flow. Do not massage bruised area if it causes pain.
                 </Text>
-                <Button
-                    title="Go back"
-                    onPress={() => goBack()}
-                />
             </View>
         );
     }
