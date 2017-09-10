@@ -31,19 +31,22 @@ class HomeScreen extends React.Component {
         const { navigate } = this.props.navigation;
         return (
             <View style={styles.container}>
+                <Image source={require('./assets/icons/name-icon.png')}
+                    style={{ width: 300, height: 200 }}/>
                 <View style={{ flexDirection: 'row' }}>
                     <Button
                         title="Take a pic"
                         onPress={this._onTake}
                     />
+                    <Text style={styles.space}>lo</Text>
                     <Button
                         title="Pick a pic"
                         onPress={this._onPick}
                     />
                 </View>
                 <View>
-                    {this.state.injury&&!this.state.isLoading ? <Text>{this.state.injury}</Text> : null}
-                    {this.state.isLoading ? <Image source={require('./assets/icons/loading-circle.gif')}/> : null}
+                    {this.state.injury==="No Injury Found"&&!this.state.isLoading ? <Text>{this.state.injury}</Text> : null}
+                    {this.state.isLoading ? <Image source={require('./assets/icons/loading-small-circle.gif')}/> : null}
                 </View>
             </View>
         );
@@ -114,20 +117,20 @@ class HomeScreen extends React.Component {
     filter = async(json) => {
         var _desc = new Array(json.length);
         for (var i = 0; i < json.length; i++) {
-            if(json[i].description === "Abrasion" || json[i].description === "Bruise") {
-                this.setState({injury: "Bruise"});
+            if (json[i].description === "Abrasion" || json[i].description === "Bruise") {
+                this.setState({ injury: "Bruise" });
                 return;
             }
-            else if(json[i].description === "Burn") {
-                this.setState({injury: "Burn"});
+            else if (json[i].description === "Burn") {
+                this.setState({ injury: "Burn" });
                 return;
             }
-            else if(json[i].description === "Blood" || json[i].description === "Bleeding" || json[i].description === "Cut") {
-                this.setState({injury: "Cut"});
+            else if (json[i].description === "Blood" || json[i].description === "Bleeding" || json[i].description === "Cut") {
+                this.setState({ injury: "Cut" });
                 return;
             }
         }
-        this.setState({injury: "No Injury Found"});
+        this.setState({ injury: "No Injury Found"});
     }
 }
 
@@ -180,15 +183,17 @@ async function uploadImageAsync(uri) {
 
 const styles = StyleSheet.create({
     button: {
-        padding: 5,
-        margin: 5,
+        padding: '5px',
+        margin: '20px',
         backgroundColor: '#ddd',
     },
     container: {
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: Constants.statusBarHeight,
+        justifyContent: 'space-around',
     },
+    space: {
+        color: 'white',
+    }
 });

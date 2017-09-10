@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "injurydetector",
-    "description": "An empty new project",
+    "name": "BruiseClues",
+    "description": "An app that detect injuries and gives suggestion of treatment.",
     "slug": "injurydetector",
     "privacy": "public",
     "sdkVersion": "20.0.0",
