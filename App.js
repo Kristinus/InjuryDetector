@@ -14,7 +14,13 @@ import {
 } from 'react-navigation';
 import { Constants } from 'expo';
 
-//import InfoScreen from './InfoScreen';
+import {
+    BruiseScreen,
+    BurnScreen,
+    CutScreen,
+} from './InfoScreen';
+
+console.log(typeof (CutScreen));
 
 class HomeScreen extends React.Component {
     state = {
@@ -32,8 +38,12 @@ class HomeScreen extends React.Component {
                         onPress={this._onTake}
                     />
                     <Button
-                            title="Pick a pic"
+                        title="Pick a pic"
                         onPress={this._onPick}
+                    />
+                    <Button
+                        title="Test new page"
+                        onPress={() => navigate('Burn', { navigate })}
                     />
                 </View>
                 <View>
@@ -94,44 +104,23 @@ class HomeScreen extends React.Component {
                 ]
             })
         };
-    var _desc = '';
-        fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc', object)
-            .then(function (response) {
-                return response.json()
-            }).then(function (body) {
-                console.log(JSON.stringify(body.responses[0].webDetection.webEntities));
-        _desc = JSON.stringify(body.responses[0].webDetection.webEntities);
-        this.setState({desc: _desc});
-            }).catch(function (err) {
-                console.log(err);
-            });
-      
+        var _desc = '';
+        const request = await fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc', object);
+        const result = await request.json();
+        const info = result.responses[0].webDetection.webEntities;
+        for (var i = 0; i < info.length; i++) {
+            _desc += ", " + info[i].description;
+        }
+        this.setState({ desc: _desc });
 
-    }
-}
-
-function n(typeofBurn) {
-    return navigate('Info', { injury: typeofBurn });
-}
-
-class InfoScreen extends React.Component {
-    static navigationOptions = ({navigation}) => ({
-        title: navigation.state.params.injury,
-    });
-    render() {
-        const { goBack } = this.props.navigation;
-        return (
-            <Button
-                title="Go back"
-                onPress={() => goBack()}
-            />
-        );
     }
 }
 
 const MainNavigator = StackNavigator({
     Home: { screen: HomeScreen },
-    Info: { screen: InfoScreen }
+    Burn: { screen: BurnScreen },
+    Cut: { screen: CutScreen },
+    Bruise: { screen: BruiseScreen },
 });
 
 export default class App extends React.Component {
