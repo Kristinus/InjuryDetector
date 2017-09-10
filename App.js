@@ -20,7 +20,7 @@ class HomeScreen extends React.Component {
     state = {
         image: null,
         uploading: false,
-        desc: '',
+    	desc: null,
     };
     render() {
         const { navigate } = this.props.navigation;
@@ -37,9 +37,8 @@ class HomeScreen extends React.Component {
                     />
                 </View>
                 <View>
-                    <Text>
-                        {this.state.desc}
-                    </Text>
+                  {this.state.desc ? <Text>{this.state.desc}</Text> : null}
+
                 </View>
             </View>
         );
@@ -53,7 +52,7 @@ class HomeScreen extends React.Component {
             uploadResponse = await uploadImageAsync(uri);
             uploadResult = await uploadResponse.json();
             this.setState({ image: uploadResult.location });
-            this.getJSON(this.state.image);
+      this.getJSON(this.state.image);
         }
     }
 
@@ -63,6 +62,7 @@ class HomeScreen extends React.Component {
             uri,
         } = await Expo.ImagePicker.launchCameraAsync();
         if (!cancelled) {
+      console.log(uri);
             uploadResponse = await uploadImageAsync(uri);
             uploadResult = await uploadResponse.json();
             this.setState({ image: uploadResult.location });
@@ -70,8 +70,7 @@ class HomeScreen extends React.Component {
         }
     }
 
-    getJSON = async (uri) => {
-        console.log(uri);
+  getJSON = async (uri) => {
         var object = {
             method: 'POST',
             headers: {
@@ -95,16 +94,19 @@ class HomeScreen extends React.Component {
                 ]
             })
         };
-        console.log(object);
+    var _desc = '';
         fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc', object)
             .then(function (response) {
                 return response.json()
             }).then(function (body) {
-                this.state.desc = JSON.stringify(body.responses[0].webDetection.webEntities);
                 console.log(JSON.stringify(body.responses[0].webDetection.webEntities));
+        _desc = JSON.stringify(body.responses[0].webDetection.webEntities);
+        this.setState({desc: _desc});
             }).catch(function (err) {
                 console.log(err);
             });
+      
+
     }
 }
 
