@@ -1,102 +1,173 @@
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  CameraRoll
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    Image,
+    CameraRoll,
+    Dimensions,
+    Button,
 } from 'react-native';
+import {
+    StackNavigator,
+} from 'react-navigation';
+import { Constants } from 'expo';
+
+import InfoScreen from './InfoScreen';
+
+class HomeScreen extends React.Component {
+    render() {
+        const { navigate } = this.props.navigation;
+        return (
+            <View style={{ flexDirection: 'row' }}>
+                <Button
+                    title="Take a pic"
+                    onPress={ this._onTake }
+                />
+                <Button
+                    title="Pick a pic"
+                    onPress={ this._onPick }
+                />
+            </View>
+        );
+    }
+}
+
+function n(typeofBurn) {
+    return navigate('Info', { injury: typeofBurn });
+}
+
+class InfoScreen extends React.Component {
+    static navigationOptions = ({navigation}) => ({
+        title: navigation.state.params.injury,
+    });
+    render() {
+        const { goBack } = this.props.navigation;
+        return (
+            <Button
+                title="Go back"
+                onPress={() => goBack()}
+            />
+        );
+    }
+}
+
+const MainNavigator = StackNavigator({
+    Home: { screen: HomeScreen },
+    Info: { screen: InfoScreen }
+});
 
 export default class App extends React.Component {
-  render() {
-    return (
-      <View style={styles.container}>
+    render() {
+        return (
+            <View style={styles.container}>
+                <MainNavigator style={{ width: Dimensions.get('window').width }} />
+            </View>
+        );
+    }
+}
 
-        <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={this._onTake}>
-          <Text>Take a pic!!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={this._onPick}>
-          <Text>Get pic!!</Text>
-        </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  _onPick = async () => {
+_onPick = async () => {
     const {
-      cancelled,
-      uri,
+        cancelled,
+        uri,
     } = await Expo.ImagePicker.launchImageLibraryAsync();
     if (!cancelled) {
-      this.getJSON(uri);
+        uploadResponse = await uploadImageAsync(uri);
+        uploadResult = await uploadResponse.json();
+        this.setState({ image: uploadResult.location });
+        this.getJSON(this.state.image);
     }
-  }
+}
 
-  _onTake = async () => {
+_onTake = async () => {
     const {
-      cancelled,
-      uri,
+        cancelled,
+        uri,
     } = await Expo.ImagePicker.launchCameraAsync();
     if (!cancelled) {
-      this.getJSON(uri);
+        uploadResponse = await uploadImageAsync(uri);
+        uploadResult = await uploadResponse.json();
+        this.setState({ image: uploadResult.location });
+        this.getJSON(this.state.image);
     }
-  }
+}
 
-  getJSON(uri) {
+getJSON(uri) {
     console.log(uri);
     var object = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        requests: [
-          {
-            image: {
-              source: {
-                imageUri:
-                "http://www.skincareorg.com/wp-content/uploads/2017/02/How-to-Stop-a-Burn-from-Hurting.jpg"
-              }
-            },
-            features: [
-              {
-                type: "WEB_DETECTION",
-                maxResults: 5
-              }
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            requests: [
+                {
+                    image: {
+                        source: {
+                            imageUri: uri
+                        }
+                    },
+                    features: [
+                        {
+                            type: "WEB_DETECTION",
+                            maxResults: 5
+                        }
+                    ]
+                }
             ]
-          }
-        ]
-      })
+        })
     };
     console.log(object);
     fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc', object)
-      .then(function (response) {
-        return response.json()
-      }).then(function (body) {
-        console.log(JSON.stringify(body.responses));
-      }).catch(function (err) {
-        console.log(err);
-      });
-  }
+        .then(function (response) {
+            return response.json()
+        }).then(function (body) {
+            this.state.desc = JSON.stringify(body.responses[0].webDetection.webEntities);
+            console.log(JSON.stringify(body.responses[0].webDetection.webEntities));
+        }).catch(function (err) {
+            console.log(err);
+        });
+}
+}
+
+async function uploadImageAsync(uri) {
+    let apiUrl = 'https://file-upload-example-backend-dkhqoilqqn.now.sh/upload';
+
+    let uriParts = uri.split('.');
+    let fileType = uri[uri.length - 1];
+
+    let formData = new FormData();
+    formData.append('photo', {
+        uri,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+    });
+
+    let options = {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+        },
+    };
+    console.log(uri);
+    return fetch(apiUrl, options);
 }
 
 const styles = StyleSheet.create({
-  button: {
-    padding: 5,
-    margin: 5,
-    backgroundColor: '#ddd',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    button: {
+        padding: 5,
+        margin: 5,
+        backgroundColor: '#ddd',
+    },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: Constants.statusBarHeight,
+    },
 });
