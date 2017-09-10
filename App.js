@@ -26,7 +26,8 @@ class HomeScreen extends React.Component {
     state = {
         image: null,
         uploading: false,
-    	desc: null,
+        injury: null,
+        isLoading: false
     };
     render() {
         const { navigate } = this.props.navigation;
@@ -41,14 +42,10 @@ class HomeScreen extends React.Component {
                         title="Pick a pic"
                         onPress={this._onPick}
                     />
-                    <Button
-                        title="Test new page"
-                        onPress={() => navigate('Burn', { navigate })}
-                    />
                 </View>
                 <View>
-                  {this.state.desc ? <Text>{this.state.desc}</Text> : null}
-
+                    {this.state.injury ? <Text>{this.state.injury}</Text> : null}
+                    {this.state.isLoading ? <Image source={require('./assets/icons/loading-circle.gif')}/> : null}
                 </View>
             </View>
         );
@@ -59,10 +56,7 @@ class HomeScreen extends React.Component {
             uri,
         } = await Expo.ImagePicker.launchImageLibraryAsync();
         if (!cancelled) {
-            uploadResponse = await uploadImageAsync(uri);
-            uploadResult = await uploadResponse.json();
-            this.setState({ image: uploadResult.location });
-      this.getJSON(this.state.image);
+            this._onSend(uri);
         }
     }
 
@@ -72,15 +66,22 @@ class HomeScreen extends React.Component {
             uri,
         } = await Expo.ImagePicker.launchCameraAsync();
         if (!cancelled) {
-      console.log(uri);
-            uploadResponse = await uploadImageAsync(uri);
-            uploadResult = await uploadResponse.json();
-            this.setState({ image: uploadResult.location });
-            this.getJSON(this.state.image);
+            this._onSend(uri);
         }
     }
 
-  getJSON = async (uri) => {
+    _onSend = async (uri) => {
+        const { navigate } = this.props.navigation;
+        await this.setState({isLoading: true});
+        uploadResponse = await uploadImageAsync(uri);
+        uploadResult = await uploadResponse.json();
+        await this.setState({ image: uploadResult.location });
+        await this.getJSON(this.state.image);
+        await this.setState({isLoading: false});
+        await navigate(this.state.injury, { navigate });
+    }
+
+    getJSON = async (uri) => {
         var object = {
             method: 'POST',
             headers: {
@@ -108,11 +109,27 @@ class HomeScreen extends React.Component {
         const request = await fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyB97a-l-FZyGXWiOBwze-EhGHIPxQazeNc', object);
         const result = await request.json();
         const info = result.responses[0].webDetection.webEntities;
-        for (var i = 0; i < info.length; i++) {
-            _desc += ", " + info[i].description;
-        }
-        this.setState({ desc: _desc });
+        this.filter(info);
+    }
 
+    //takes in unfiltered json array
+    filter = async(json) => {
+        var _desc = new Array(json.length);
+        for (var i = 0; i < json.length; i++) {
+            if(json[i].description === "Abrasion" || json[i].description === "Bruise") {
+                this.setState({injury: "Bruise"});
+                return;
+            }
+            else if(json[i].description === "Burn") {
+                this.setState({injury: "Burn"});
+                return;
+            }
+            else if(json[i].description === "Blood" || json[i].description === "Bleeding" || json[i].description === "Cut") {
+                this.setState({injury: "Cut"});
+                return;
+            }
+        }
+        this.setState({injury: "No Injury Found"});
     }
 }
 
@@ -121,6 +138,7 @@ const MainNavigator = StackNavigator({
     Burn: { screen: BurnScreen },
     Cut: { screen: CutScreen },
     Bruise: { screen: BruiseScreen },
+    // Bleeding: { screen: BleedingScreen },
 });
 
 export default class App extends React.Component {
@@ -137,29 +155,30 @@ export default class App extends React.Component {
 }
 
 async function uploadImageAsync(uri) {
-  let apiUrl = 'https://file-upload-example-backend-dkhqoilqqn.now.sh/upload';
+    let apiUrl = 'https://file-upload-example-backend-dkhqoilqqn.now.sh/upload';
 
-  let uriParts = uri.split('.');
-  let fileType = uri[uri.length - 1];
+    let uriParts = uri.split('.');
+    let fileType = uri[uri.length - 1];
 
-  let formData = new FormData();
-  formData.append('photo', {
-    uri,
-    name: `photo.${fileType}`,
-    type: `image/${fileType}`,
-  });
+    let formData = new FormData();
+    formData.append('photo', {
+        uri,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+    });
 
-  let options = {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'multipart/form-data',
-    },
-  };
-  console.log(uri);
-  return fetch(apiUrl, options);
+    let options = {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+        },
+    };
+    return fetch(apiUrl, options);
 }
+
+
 
 const styles = StyleSheet.create({
     button: {
